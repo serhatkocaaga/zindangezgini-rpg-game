@@ -1,5 +1,5 @@
 package veritabani;
-
+import java.io.FileInputStream; // Bunu ekle
 import java.io.InputStream;
 import java.util.Properties;
 import java.sql.Connection;
@@ -7,24 +7,23 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class VeritabaniBaglantisi {
-
     private static Properties props = new Properties();
     private static Connection baglanti = null;
 
-    // Statik blok ile konfigürasyon dosyasını yüklüyoruz
     static {
-        try (InputStream input = VeritabaniBaglantisi.class.getClassLoader().getResourceAsStream("db.properties")) {
-            if (input != null) {
-                props.load(input);
-            } else {
-                System.out.println("[HATA] db.properties dosyası bulunamadı! Lütfen resources klasörüne ekleyin.");
-            }
+        try {
+            // getResourceAsStream yerine FileInputStream kullanıyoruz
+            // Bu, projenin en dışındaki dosyayı okur
+            InputStream input = new FileInputStream("db.properties");
+            props.load(input);
+            input.close();
         } catch (Exception e) {
-            System.out.println("[HATA] Konfigürasyon dosyası okunamadı: " + e.getMessage());
+            System.out.println("[HATA] db.properties dosyası bulunamadı! Lütfen projenin ana klasörüne ekleyin.");
+            System.out.println("Detay: " + e.getMessage());
         }
     }
 
-    // Bilgileri artık dosyadan çekiyoruz
+    // ... geri kalan kodların (URL, KULLANICI_ADI, SIFRE tanımlamaları) aynı kalabilir
     private static final String URL = props.getProperty("db.url");
     private static final String KULLANICI_ADI = props.getProperty("db.user");
     private static final String SIFRE = props.getProperty("db.pass");
