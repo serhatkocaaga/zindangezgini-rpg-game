@@ -1,25 +1,39 @@
 package veritabani;
 
+import java.io.InputStream;
+import java.util.Properties;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class VeritabaniBaglantisi {
 
-    // PostgreSQL sunucu bilgileri
-    private static final String URL = "jdbc:postgresql://localhost:5432/zindangezgini_db";
-    private static final String KULLANICI_ADI = "postgres";
-    private static final String SIFRE = "1231233100serhatX";
-
-    // Arayüzle paylaşacağımız ortak bağlantı nesnesi
+    private static Properties props = new Properties();
     private static Connection baglanti = null;
 
-    // Arayüzün ve testlerin çağrı yaptığı metot
+    // Statik blok ile konfigürasyon dosyasını yüklüyoruz
+    static {
+        try (InputStream input = VeritabaniBaglantisi.class.getClassLoader().getResourceAsStream("db.properties")) {
+            if (input != null) {
+                props.load(input);
+            } else {
+                System.out.println("[HATA] db.properties dosyası bulunamadı! Lütfen resources klasörüne ekleyin.");
+            }
+        } catch (Exception e) {
+            System.out.println("[HATA] Konfigürasyon dosyası okunamadı: " + e.getMessage());
+        }
+    }
+
+    // Bilgileri artık dosyadan çekiyoruz
+    private static final String URL = props.getProperty("db.url");
+    private static final String KULLANICI_ADI = props.getProperty("db.user");
+    private static final String SIFRE = props.getProperty("db.pass");
+
     public static Connection baglantiAl() {
         try {
-            // Bağlantı yoksa veya herhangi bir sebeple kapanmışsa yeniden aç
             if (baglanti == null || baglanti.isClosed()) {
                 Class.forName("org.postgresql.Driver");
+                // Eğer db.properties yüklenemediyse SIFRE null döner, burası kontrol edilebilir
                 baglanti = DriverManager.getConnection(URL, KULLANICI_ADI, SIFRE);
             }
         } catch (ClassNotFoundException e) {
@@ -31,7 +45,6 @@ public class VeritabaniBaglantisi {
         return baglanti;
     }
 
-    // OYUN ARAYÜZÜNÜN ÇALIŞMASI İÇİN EKSİK OLAN METOT:
     public static void baglantiyiKapat() {
         try {
             if (baglanti != null && !baglanti.isClosed()) {
